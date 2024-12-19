@@ -5,7 +5,7 @@ import json
 import uuid
 
 # 配置参数
-INPUT_VIDEO = "1734625606535-0b10f51d78eb1b835a502cb973cc1f26d62f2d42-video.mp4"  # 输入视频文件
+INPUT_VIDEO = "1734627657122-5dc7a23cff0468b041783f5341f3a3b9ed296b1f-video.mp4"  # 输入视频文件
 WHISPER_MODEL = "turbo"  # Whisper 模型
 LANGUAGE = "zh"  # 提取语言
 OFFSET = 1.8  # 跳过标志位的偏移时间
@@ -61,6 +61,7 @@ def extract_timestamps(json_file, video_duration):
     return timestamps
 
 # 3. 分割视频
+# 3. 分割视频
 def split_video(input_video, timestamps, output_dir, video_duration):
     os.makedirs(output_dir, exist_ok=True)
 
@@ -72,7 +73,8 @@ def split_video(input_video, timestamps, output_dir, video_duration):
         output_file = os.path.join(output_dir, f"output_part{i + 1}.mp4")
 
         # 构造 FFmpeg 命令
-        command = ["ffmpeg", "-i", input_video, "-ss", str(start_time)]
+        # 将 -ss 放在 -i 前面来高效跳过无效时间段
+        command = ["ffmpeg", "-ss", str(start_time), "-i", input_video]
         if end_time and end_time > start_time:
             command += ["-to", str(end_time)]
         command += ["-c", "copy", output_file]  # 无损剪辑
@@ -80,6 +82,7 @@ def split_video(input_video, timestamps, output_dir, video_duration):
         subprocess.run(command, check=True)
     
     print(f"分割完成，所有片段保存在 {output_dir} 目录中。")
+
 
 # 主程序
 if __name__ == "__main__":
