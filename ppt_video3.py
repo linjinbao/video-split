@@ -5,7 +5,7 @@ from pdf2image import convert_from_path
 
 # 设置路径
 PPT_PDF_FILE = 'pp.pdf'  # 你的PDF文件
-VIDEO_OUTPUT_DIR = 'video_output_1734627657122-5dc7a23cff0468b041783f5341f3a3b9ed296b1f-video_dc4f4f50'  # 视频文件夹
+VIDEO_OUTPUT_DIR = './video_output_1734627657122-5dc7a23cff0468b041783f5341f3a3b9ed296b1f-video_0b8a31da'  # 视频文件夹
 FINAL_VIDEO_PATH = './final_output.mp4'  # 输出的最终视频路径
 PDF_PAGE_RANGE = (1, 8)  # 处理PDF的第1到第8页
 
