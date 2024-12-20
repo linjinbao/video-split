@@ -1,29 +1,76 @@
-import json
-import re
+import os
 import subprocess
+import random
+import string
 
-# 时间偏移量，单位为秒（确保标志位内容被完全去掉）
-OFFSET = 1.8
+# 输入视频文件路径
+input_file = "1734672056993-b3c889653c0e979325f003096384f91768831042-video.mp4"
 
-# 加载 Whisper 的 JSON 输出
-with open("output-b8b9/1734595582547-8f606097a94a35b19e6590cc6e07de437d6cb8b9-video.json", "r", encoding="utf-8") as f:
-    transcription = json.load(f)
+# 生成随机目录
+output_dir = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+os.makedirs(output_dir, exist_ok=True)
+print(f"分割文件将保存到目录: {output_dir}")
 
-# 提取时间戳
-timestamps = []
-for segment in transcription["segments"]:
-    # 使用正则匹配“标志位”或“标志为”
-    if re.search(r"标志[位为]", segment["text"]):
-        start_time = max(0, segment["start"] + OFFSET)  # 确保时间非负
-        timestamps.append(start_time)
+# 检测静音段
+cmd = [
+    "ffmpeg", "-i", input_file, "-af", "silencedetect=n=-30dB:d=3", "-f", "null", "-"
+]
+result = subprocess.run(cmd, stderr=subprocess.PIPE, text=True)
+output = result.stderr
+
+# 提取静音时间段
+silence_times = []
+for line in output.splitlines():
+    if "silence_start" in line:
+        silence_start = float(line.split("silence_start: ")[1])
+    if "silence_end" in line:
+        silence_end = float(line.split("silence_end: ")[1].split(" |")[0])
+        silence_times.append((silence_start, silence_end))
 
 # 分割视频
-input_video = "1734595582547-8f606097a94a35b19e6590cc6e07de437d6cb8b9-video.mp4"
-for i, start_time in enumerate(timestamps):
-    end_time = timestamps[i + 1] if i + 1 < len(timestamps) else None  # 下一个时间戳
-    output_video = f"output/output_part{i + 1}.mp4"
-    command = ["ffmpeg", "-i", input_video, "-ss", str(start_time)]
-    if end_time:
-        command += ["-to", str(end_time)]
-    command += ["-c", "copy", output_video]  # 使用 -c copy 保持无损
-    subprocess.run(command)
+start_time = 0
+if silence_times and silence_times[0][0] == 0:  # 如果开头有静音
+    start_time = silence_times[0][1]  # 跳过第一个静音段
+    silence_times.pop(0)
+
+for idx, (silence_start, silence_end) in enumerate(silence_times):
+    if silence_start - start_time < 1:  # 忽略小于 1 秒的片段
+        continue
+    output_file = os.path.join(output_dir, f"segment{idx+1}.mp4")
+    print(f"分割段 {idx+1}: 开始时间 {start_time}, 结束时间 {silence_start}")
+    cmd = [
+        "ffmpeg",
+        "-i",
+        input_file,
+        "-ss",
+        str(start_time),
+        "-to",
+        str(silence_start),
+        "-c:v",
+        "libx264",
+        "-preset",
+        "fast",
+        output_file,
+    ]
+    subprocess.run(cmd)
+    start_time = silence_end
+
+# 最后一段视频
+if len(silence_times) == 0 or len(silence_times[-1]) > 1:
+    output_file = os.path.join(output_dir, f"segment{len(silence_times)+1}.mp4")
+    print(f"分割段 {len(silence_times)+1}: 开始时间 {start_time}, 到结束")
+    cmd = [
+        "ffmpeg",
+        "-i",
+        input_file,
+        "-ss",
+        str(start_time),
+        "-c:v",
+        "libx264",
+        "-preset",
+        "fast",
+        output_file,
+    ]
+    subprocess.run(cmd)
+
+print(f"分割完成！所有文件已保存到目录: {output_dir}")
