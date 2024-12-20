@@ -4,10 +4,10 @@ import subprocess
 from pdf2image import convert_from_path
 
 # 设置路径
-PPT_PDF_FILE = 'pp.pdf'  # 你的PDF文件
-VIDEO_OUTPUT_DIR = './video_output_1734627657122-5dc7a23cff0468b041783f5341f3a3b9ed296b1f-video_0b8a31da'  # 视频文件夹
+PPT_PDF_FILE = 'ppp.pdf'  # 你的PDF文件
+VIDEO_OUTPUT_DIR = './video_output_1734666374758-22dc88ac6a2ff20609d033e9714831606dec98f7-video_59290d0f'  # 视频文件夹
 FINAL_VIDEO_PATH = './final_output.mp4'  # 输出的最终视频路径
-PDF_PAGE_RANGE = (1, 8)  # 处理PDF的第1到第8页
+PDF_PAGE_RANGE = (1, 3)  # 处理PDF的第1到第8页
 
 def natural_sort_key(s):
     """生成一个自然排序的key，确保数字部分按照数字的大小排序"""
@@ -88,7 +88,7 @@ def merge_video_with_image(video_dir, images_dir, final_video_path):
             '-i', video_path,
             '-i', image_path,
             '-filter_complex',
-            '[0:v]scale=180:270[small];[1:v]scale=1920x1080[bg];[bg][small]overlay=W-w-10:H-h-10[vout]',
+            '[0:v]scale=360:540[small];[1:v]scale=1920x1080[bg];[bg][small]overlay=W-w-10:H-h-10[vout]',
             '-map', '[vout]', '-map', '0:a?',
             '-c:v', 'libx264', '-c:a', 'aac',
             '-t', str(video_duration - valid_start_time),  # 减去无效时长

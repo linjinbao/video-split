@@ -5,7 +5,7 @@ import json
 import uuid  # 导入 uuid 库用于生成唯一标识符
 
 # 配置参数
-INPUT_VIDEO = "1734627657122-5dc7a23cff0468b041783f5341f3a3b9ed296b1f-video.mp4"  # 输入视频文件
+INPUT_VIDEO = "1734666374758-22dc88ac6a2ff20609d033e9714831606dec98f7-video.mp4"  # 输入视频文件
 WHISPER_MODEL = "turbo"  # Whisper 模型
 LANGUAGE = "zh"  # 提取语言
 OFFSET = 1.8  # 跳过标志位的偏移时间
